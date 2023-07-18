@@ -66,6 +66,7 @@ services:
 #     NO_DB_CLEARER: 1
 #     STOP_ALL_BOOTSTRAPPING: 1
 #     NO_REQUIRE_ACCOUNT: 1
+#     ALLOW_INF_AUTO_QUEST: 1
 ### Uncommenting The following lines will start RDM in lldb and show crash reports in logs
 ### Running in lldb will use more resources, but RDM will run as usual.
 #   entrypoint: ["./Scripts/run-lldb.bash"]

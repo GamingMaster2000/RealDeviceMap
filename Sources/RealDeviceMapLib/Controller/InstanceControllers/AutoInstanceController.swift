@@ -65,6 +65,7 @@ class AutoInstanceController: InstanceControllerProto {
     public let skipBootstrap: Bool = ConfigLoader.global.getConfig(type: .stopAllBootstrapping)
     public let limit = UInt8(exactly: ConfigLoader.global.getConfig(type: .questRetryLimit) as Int)!
     public let spinDistance = Double(ConfigLoader.global.getConfig(type: .spinDistance) as Int)
+    public let infAutoQuest: Bool = ConfigLoader.global.getConfig(type: .infAutoQuest)
 
     struct AutoPokemonCoord {
         var id: UInt64
@@ -468,13 +469,15 @@ class AutoInstanceController: InstanceControllerProto {
                     return [String: Any]()
                 }
                 if todayStops!.isEmpty {
-                    guard Date().timeIntervalSince(lastDoneCheck) >= 600 else {
-                        stopsLock.unlock()
-                        if doneDate == nil {
-                            doneDate = Date()
+                    if !infAutoQuest {
+                        guard Date().timeIntervalSince(lastDoneCheck) >= 600 else {
+                            stopsLock.unlock()
+                            if doneDate == nil {
+                                doneDate = Date()
+                            }
+                            delegate?.instanceControllerDone(mysql: mysql, name: name)
+                            return [:]
                         }
-                        delegate?.instanceControllerDone(mysql: mysql, name: name)
-                        return [:]
                     }
                     lastDoneCheck = Date()
                     let ids = Array(Set(self.allStops!.map({ (stop) -> String in
@@ -735,14 +738,14 @@ class AutoInstanceController: InstanceControllerProto {
                         if questMode == .normal || questMode == .both {
                             let pokestopWithMode = PokestopWithMode(pokestop: stop, alternative: false)
                             let count = todayStopsTries![pokestopWithMode] ?? 0
-                            if stop.questType == nil && stop.enabled == true && count <= 5 {
+                            if stop.questType == nil && stop.enabled == true && (infAutoQuest || count <= 5) {
                                 todayStops!.append(pokestopWithMode)
                             }
                         }
                         if questMode == .alternative || questMode == .both {
                             let pokestopWithMode = PokestopWithMode(pokestop: stop, alternative: true)
                             let count = todayStopsTries![pokestopWithMode] ?? 0
-                            if stop.alternativeQuestType == nil && stop.enabled == true && count <= 5 {
+                            if stop.alternativeQuestType == nil && stop.enabled == true && (infAutoQuest || count <= 5) {
                                 todayStops!.append(pokestopWithMode)
                             }
                         }
